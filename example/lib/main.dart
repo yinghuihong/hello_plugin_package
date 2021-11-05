@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hello_plugin_package/hello_plugin_package.dart';
 
@@ -18,10 +18,18 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
 
+  int _storageTotalSpace = 0;
+  int _storageFreeSpace = 0;
+  int _storageUsedSpace = 0;
+  int _memoryTotalSpace = 0;
+  int _memoryFreeSpace = 0;
+  int _memoryUsedSpace = 0;
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
+    initSpaceState();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -30,8 +38,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await HelloPluginPackage.platformVersion ?? 'Unknown platform version';
+      platformVersion = await HelloPluginPackage.platformVersion ??
+          'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -46,6 +54,23 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void initSpaceState() async {
+    int storageTotalSpace = await HelloPluginPackage.getStorageTotalSpace;
+    int storageFreeSpace = await HelloPluginPackage.getStorageFreeSpace;
+    int storageUsedSpace = await HelloPluginPackage.getStorageUsedSpace;
+    int memoryTotalSpace = await HelloPluginPackage.getMemoryTotalSpace;
+    int memoryFreeSpace = await HelloPluginPackage.getMemoryFreeSpace;
+    int memoryUsedSpace = await HelloPluginPackage.getMemoryUsedSpace;
+    setState(() {
+      _storageTotalSpace = storageTotalSpace;
+      _storageFreeSpace = storageFreeSpace;
+      _storageUsedSpace = storageUsedSpace;
+      _memoryTotalSpace = memoryTotalSpace;
+      _memoryFreeSpace = memoryFreeSpace;
+      _memoryUsedSpace = memoryUsedSpace;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -54,7 +79,17 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: Column(
+            children: [
+              Text('Running on: $_platformVersion\n'),
+              Text('Memory total: $_memoryTotalSpace\n'),
+              Text('Memory free: $_memoryFreeSpace\n'),
+              Text('Memory used: $_memoryUsedSpace\n'),
+              Text('Storage total: $_storageTotalSpace\n'),
+              Text('Storage free: $_storageFreeSpace\n'),
+              Text('Storage used: $_storageUsedSpace\n'),
+            ],
+          ),
         ),
       ),
     );
