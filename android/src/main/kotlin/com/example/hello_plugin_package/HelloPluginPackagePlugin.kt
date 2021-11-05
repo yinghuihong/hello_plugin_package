@@ -2,11 +2,24 @@ package com.example.hello_plugin_package;
 
 import android.app.ActivityManager
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Environment
 import android.os.StatFs
+import android.util.Base64
+import io.flutter.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.JSONMethodCodec
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONArray
+import java.io.ByteArrayOutputStream
+
+const val TAG = "Flutter Package Manager"
 
 /** HelloPluginPackagePlugin  */
 class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
@@ -18,7 +31,11 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
     private lateinit var context: Context
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         context = flutterPluginBinding.applicationContext
-        channel = MethodChannel(flutterPluginBinding.binaryMessenger, "hello_plugin_package")
+        channel = MethodChannel(
+            flutterPluginBinding.binaryMessenger,
+            "hello_plugin_package",
+            JSONMethodCodec.INSTANCE,
+        )
         channel.setMethodCallHandler(this)
     }
 
@@ -33,6 +50,14 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
             "getMemoryTotalSpace" -> result.success(getMemoryTotalSpace())
             "getMemoryFreeSpace" -> result.success(getMemoryFreeSpace())
             "getMemoryUsedSpace" -> result.success(getMemoryUsedSpace())
+
+
+            "getPackageInfo" -> {
+                val args = call.arguments as JSONArray
+                result.success(getPackageInfo(args[0] as String))
+            }
+            "getInstalledPackages" -> result.success(getInstalledPackages())
+            "getUserInstalledPackages" -> result.success(getInstalledPackages(true))
 
             else -> result.notImplemented()
         }
@@ -79,6 +104,94 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
         val memoryInfo: ActivityManager.MemoryInfo = ActivityManager.MemoryInfo()
         mActivityManager.getMemoryInfo(memoryInfo)
         return memoryInfo.totalMem - memoryInfo.availMem;
+    }
+
+    /**
+     * get all installed packages's package name
+     */
+    private fun getInstalledPackages(userInstalled: Boolean = false): ArrayList<String> {
+        val ret = ArrayList<String>()
+        context
+            .packageManager
+            .getInstalledPackages(0)
+            .forEach {
+                var pName: String? = it.packageName
+                if (userInstalled) {
+                    val isSystemApp =
+                        (it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) !== 0
+                    if (isSystemApp) pName = null
+                }
+                if (pName != null) {
+                    ret.add(pName)
+                }
+            }
+        return ret
+    }
+
+    /**
+     * get package name, app name, app icon11111
+     */
+    private fun getPackageInfo(packageName: String): java.util.HashMap<String, Any?>? {
+        try {
+            val info: java.util.HashMap<String, Any?> = java.util.HashMap()
+            val appInfo: ApplicationInfo = context.packageManager
+                .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+            val appName: String = context.packageManager.getApplicationLabel(appInfo).toString()
+            val appIcon: Drawable = context.packageManager.getApplicationIcon(appInfo.packageName)
+            val byteImage = drawableToBase64String(appIcon)
+
+            info["packageName"] = appInfo.packageName
+            info["appName"] = appName
+            info["appIcon"] = byteImage
+//      Log.i(TAG, "xxx get the Package $packageName Info $info")
+            return info
+        } catch (e: Exception) {
+            Log.e(TAG, "xxx $packageName not installed", e)
+            return null
+        }
+    }
+
+    /**
+     * get base64 encoded string from drawable
+     */
+    private fun drawableToBase64String(drawable: Drawable): String {
+        val bitmap: Bitmap = drawableToBitmap(drawable)
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        val b = baos.toByteArray()
+        return Base64.encodeToString(b, Base64.DEFAULT)
+    }
+
+    /**
+     * get bitmap style drawable
+     */
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        val bitmap: Bitmap?
+
+        if (drawable is BitmapDrawable) {
+            if (drawable.bitmap != null) {
+                return drawable.bitmap
+            }
+        }
+
+        bitmap = if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+            Bitmap.createBitmap(
+                1,
+                1,
+                Bitmap.Config.ARGB_8888
+            ) // Single color bitmap will be created of 1x1 pixel
+        } else {
+            Bitmap.createBitmap(
+                drawable.intrinsicWidth,
+                drawable.intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+        }
+
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {

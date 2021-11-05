@@ -25,14 +25,18 @@ class _MyAppState extends State<MyApp> {
   int _memoryFreeSpace = 0;
   int _memoryUsedSpace = 0;
 
+  int _userInstallPackagesNum = 0;
+  PackageInfo? _packageInfo;
+
   @override
   void initState() {
     super.initState();
     initPlatformState();
     initSpaceState();
+    initPackageState();
   }
 
-  // Platform messages are asynchronous, so we initialize in an async method.
+  /// Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
@@ -54,6 +58,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  /// Include storage and memory space
   void initSpaceState() async {
     int storageTotalSpace = await HelloPluginPackage.getStorageTotalSpace;
     int storageFreeSpace = await HelloPluginPackage.getStorageFreeSpace;
@@ -68,6 +73,17 @@ class _MyAppState extends State<MyApp> {
       _memoryTotalSpace = memoryTotalSpace;
       _memoryFreeSpace = memoryFreeSpace;
       _memoryUsedSpace = memoryUsedSpace;
+    });
+  }
+
+  /// Should define android.permission.QUERY_ALL_PACKAGES permission
+  void initPackageState() async {
+    List packages = (await HelloPluginPackage.getUserInstalledPackages());
+    PackageInfo? packageInfo =
+        (await HelloPluginPackage.getPackageInfo(packages[0]));
+    setState(() {
+      _userInstallPackagesNum = packages.length;
+      _packageInfo = packageInfo;
     });
   }
 
@@ -88,6 +104,10 @@ class _MyAppState extends State<MyApp> {
               Text('Storage total: $_storageTotalSpace\n'),
               Text('Storage free: $_storageFreeSpace\n'),
               Text('Storage used: $_storageUsedSpace\n'),
+              Text('User installed apps num: $_userInstallPackagesNum\n'),
+              Center(
+                child: _packageInfo?.getAppIcon(),
+              )
             ],
           ),
         ),
