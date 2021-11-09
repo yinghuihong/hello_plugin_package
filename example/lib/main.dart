@@ -76,7 +76,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  /// Should define android.permission.QUERY_ALL_PACKAGES permission
+  /// Should declaration android.permission.QUERY_ALL_PACKAGES permission for Android 11
   void initPackageState() async {
     List packages = (await HelloPluginPackage.getUserInstalledPackages());
     PackageInfo? packageInfo =

@@ -1,15 +1,88 @@
-# hello_plugin_package
+# hello plugin package
 
-A new flutter plugin project.
+## Device Space for Android
+Get the information about free, used and total storage or memory space.
 
-## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+## Package Manager for Android
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This plugin offers the ability of android's `PackageManager`.
+You can retrieve the `app name`, `app launcher icon` through
+this package with its `package name`. The package should be
+installed on a device.
 
+# How to use
+
+See the `./example` and `./lib` folders for the details.
+
+## Get Space Info
+
+```dart
+// Import package
+import 'package:hello_plugin_package/hello_plugin_package.dart';
+
+// Access storage space
+Future<int> _getStorageTotalSpace() async {
+  return await HelloPluginPackage.getStorageTotalSpace;
+}
+
+Future<int> _getStorageFreeSpace() async {
+  return await HelloPluginPackage.getStorageFreeSpace;
+}
+
+Future<int> _getStorageUsedSpace() async {
+  return await HelloPluginPackage.getStorageUsedSpace;
+}
+
+// Access memory space
+Future<int> _getMemoryTotalSpace() async {
+  return await HelloPluginPackage.getMemoryTotalSpace;
+}
+
+Future<int> _getMemoryFreeSpace() async {
+  return await HelloPluginPackage.getMemoryFreeSpace;
+}
+
+Future<int> _getMemoryUsedSpace() async {
+  return await HelloPluginPackage.getMemoryUsedSpace;
+}
+```
+
+
+## Get package information from the package name
+
+```dart
+import 'package:hello_plugin_package/hello_plugin_package.dart';
+
+/// ... other codes
+
+Future<PackageInfo> getPackageInfo() async {
+  final PackageInfo info =
+    await HelloPluginPackage.getPackageInfo('com.facebook.katana');
+  return info;
+}
+```
+
+`PackageInfo` class contains `packageName`, `appName` and `appIconByteArray`.
+`appIconByteArray` is an array of `base64` byte image of app icon.
+You can get flutter's `Image` widget icon by `appIcon` getter.
+If the app is not installed, than `null` is returned.
+
+## Get package names of the all applications installed on the device
+
+```dart
+import 'package:hello_plugin_package/hello_plugin_package.dart';
+
+/// ... other codes
+
+Future<List> getInstalledPackages() async {
+  // All apps including system apps
+  List packages = await HelloPluginPackage.getInstalledPackages();
+
+  // Apps installed by user
+  List userInstalledPackages = await HelloPluginPackage.getUserInstalledPackages();
+  return packages;
+}
+```
+
+`getUserInstalledPackages` on Android 11 is limit. You should declaration android.permission.QUERY_ALL_PACKAGES permission.
