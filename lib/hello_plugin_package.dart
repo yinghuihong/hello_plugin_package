@@ -11,7 +11,8 @@ class HelloPluginPackage {
 
   /// Platform release version. e.g. 11
   static Future<String?> get platformReleaseVersion async {
-    final String? version = await _channel.invokeMethod('getPlatformReleaseVersion');
+    final String? version =
+        await _channel.invokeMethod('getPlatformReleaseVersion');
     return version;
   }
 
