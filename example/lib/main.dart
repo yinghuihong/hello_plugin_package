@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,7 +17,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _platformReleaseVersion = 'Unknown';
+  int _platformSdkVersion = 0;
 
   int _storageTotalSpace = 0;
   int _storageFreeSpace = 0;
@@ -38,15 +40,18 @@ class _MyAppState extends State<MyApp> {
 
   /// Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    String platformVersion;
+    String platformReleaseVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion = await HelloPluginPackage.platformVersion ??
-          'Unknown platform version';
+      platformReleaseVersion =
+          await HelloPluginPackage.platformReleaseVersion ??
+              'Unknown platform release version';
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
+      platformReleaseVersion = 'Failed to get platform release version.';
     }
+
+    int platformSdkVersion = await HelloPluginPackage.platformSdkVersion;
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -54,7 +59,8 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
 
     setState(() {
-      _platformVersion = platformVersion;
+      _platformReleaseVersion = platformReleaseVersion;
+      _platformSdkVersion = platformSdkVersion;
     });
   }
 
@@ -97,7 +103,8 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             children: [
-              Text('Running on: $_platformVersion\n'),
+              Text(
+                  'Running on: ${Platform.operatingSystem} $_platformReleaseVersion sdk $_platformSdkVersion \n'),
               Text('Memory total: $_memoryTotalSpace\n'),
               Text('Memory free: $_memoryFreeSpace\n'),
               Text('Memory used: $_memoryUsedSpace\n'),

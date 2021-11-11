@@ -1,3 +1,7 @@
+## 0.0.4
+
+* Provide api to get platform version.
+
 ## 0.0.3
 
 * Provide the api of query package info.

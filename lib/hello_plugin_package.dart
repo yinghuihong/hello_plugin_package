@@ -9,9 +9,15 @@ class HelloPluginPackage {
   static const MethodChannel _channel =
       MethodChannel('hello_plugin_package', JSONMethodCodec());
 
-  /// Platform version. e.g. Android 11
-  static Future<String?> get platformVersion async {
-    final String? version = await _channel.invokeMethod('getPlatformVersion');
+  /// Platform release version. e.g. 11
+  static Future<String?> get platformReleaseVersion async {
+    final String? version = await _channel.invokeMethod('getPlatformReleaseVersion');
+    return version;
+  }
+
+  /// Platform sdk version. e.g. 30
+  static Future<int> get platformSdkVersion async {
+    final int version = await _channel.invokeMethod('getPlatformSdkVersion');
     return version;
   }
 

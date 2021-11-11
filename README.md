@@ -1,8 +1,12 @@
 # hello plugin package
 
-## Device Space for Android
-Get the information about free, used and total storage or memory space.
+Integrate the functions of multiple plug-ins for daily use.
 
+## Get platform version for Android
+Get the release and sdk versions of the platform.
+
+## Get device space for Android
+Get the information about free, used and total storage or memory space.
 
 ## Package Manager for Android
 

@@ -41,7 +41,8 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "getPlatformVersion" -> result.success("Android " + android.os.Build.VERSION.RELEASE)
+            "getPlatformReleaseVersion" -> result.success(android.os.Build.VERSION.RELEASE)
+            "getPlatformSdkVersion" -> result.success(android.os.Build.VERSION.SDK_INT)
 
             "getStorageFreeSpace" -> result.success(getStorageFreeSpace())
             "getStorageUsedSpace" -> result.success(getStorageUsedSpace())
