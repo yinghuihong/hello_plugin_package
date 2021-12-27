@@ -60,9 +60,9 @@ import 'package:hello_plugin_package/hello_plugin_package.dart';
 
 /// ... other codes
 
-Future<PackageInfo> getPackageInfo() async {
+Future<PackageInfo> getPackageInfoByPackageName() async {
   final PackageInfo info =
-    await HelloPluginPackage.getPackageInfo('com.facebook.katana');
+    await HelloPluginPackage.getPackageInfoByPackageName('com.facebook.katana');
   return info;
 }
 ```

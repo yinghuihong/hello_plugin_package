@@ -60,9 +60,19 @@ class HelloPluginPackage {
 
   /// Get package information of the `name` package
   /// Return: `PackageInfo` class
-  static Future<PackageInfo?> getPackageInfo(String name) async {
-    Map? result =
-        await _channel.invokeMethod('getPackageInfo', <dynamic>[name]);
+  static Future<PackageInfo?> getPackageInfoByPackageName(
+      String packageName) async {
+    Map result = await _channel
+        .invokeMethod('getPackageInfoByPackageName', <dynamic>[packageName]);
+    return PackageInfo.fromMap(result);
+  }
+
+  /// Get package information of the `name` package
+  /// Return: `PackageInfo` class
+  static Future<PackageInfo?> getPackageInfoByApkFile(
+      String apkFilePath) async {
+    Map? result = await _channel
+        .invokeMethod('getPackageInfoByApkFile', <dynamic>[apkFilePath]);
     return result != null ? PackageInfo.fromMap(result) : null;
   }
 

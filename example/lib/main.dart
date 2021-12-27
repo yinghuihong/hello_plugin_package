@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hello_plugin_package/hello_plugin_package.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,18 +29,20 @@ class _MyAppState extends State<MyApp> {
   int _memoryUsedSpace = 0;
 
   int _userInstallPackagesNum = 0;
-  PackageInfo? _packageInfo;
+  PackageInfo? _packageInfoByPackageName;
+  PackageInfo? _packageInfoByApkFile;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
-    initSpaceState();
-    initPackageState();
+    _initPlatformState();
+    _initSpaceState();
+    _getPackageInfoByPackageName();
+    _getPackageInfoByApkFile();
   }
 
   /// Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
+  Future<void> _initPlatformState() async {
     String platformReleaseVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
@@ -65,7 +68,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// Include storage and memory space
-  void initSpaceState() async {
+  void _initSpaceState() async {
     int storageTotalSpace = await HelloPluginPackage.getStorageTotalSpace;
     int storageFreeSpace = await HelloPluginPackage.getStorageFreeSpace;
     int storageUsedSpace = await HelloPluginPackage.getStorageUsedSpace;
@@ -83,14 +86,24 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// Should declaration android.permission.QUERY_ALL_PACKAGES permission for Android 11
-  void initPackageState() async {
+  void _getPackageInfoByPackageName() async {
     List packages = (await HelloPluginPackage.getUserInstalledPackages());
     PackageInfo? packageInfo =
-        (await HelloPluginPackage.getPackageInfo(packages[0]));
-    setState(() {
-      _userInstallPackagesNum = packages.length;
-      _packageInfo = packageInfo;
-    });
+        (await HelloPluginPackage.getPackageInfoByPackageName(packages[0]));
+    print(packageInfo);
+    _userInstallPackagesNum = packages.length;
+    _packageInfoByPackageName = packageInfo;
+    setState(() {});
+  }
+
+  /// Should declaration android.permission.QUERY_ALL_PACKAGES permission for Android 11
+  void _getPackageInfoByApkFile() async {
+    PackageInfo? packageInfo2 =
+        (await HelloPluginPackage.getPackageInfoByApkFile(
+            "/storage/emulated/0/Documents/SHAREit.apk"));
+    print(packageInfo2);
+    _packageInfoByApkFile = packageInfo2;
+    setState(() {});
   }
 
   @override
@@ -99,6 +112,14 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Plugin example app'),
+          actions: [
+            IconButton(
+              onPressed: () {
+                _checkPermission(true);
+              },
+              icon: const Icon(Icons.security),
+            ),
+          ],
         ),
         body: Center(
           child: Column(
@@ -113,12 +134,43 @@ class _MyAppState extends State<MyApp> {
               Text('Storage used: $_storageUsedSpace\n'),
               Text('User installed apps num: $_userInstallPackagesNum\n'),
               Center(
-                child: _packageInfo?.getAppIcon(),
-              )
+                child: _packageInfoByPackageName?.getAppIcon(),
+              ),
+              Center(
+                child: _packageInfoByApkFile?.getAppIcon(),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// Check or request storage permission
+  void _checkPermission(bool shouldRequest) async {
+    // Android 10 or below use storage permission
+    Permission manageStoragePermission = Permission.storage;
+    if ((await HelloPluginPackage.platformSdkVersion) >= 30) {
+      // Android 11 use manageExternalStorage permission
+      manageStoragePermission = Permission.manageExternalStorage;
+    }
+    PermissionStatus permissionStatus = await manageStoragePermission.status;
+
+    if (shouldRequest) {
+      debugPrint("xxx permission status before request $permissionStatus");
+      permissionStatus = await manageStoragePermission.request();
+      debugPrint("xxx permission status after request $permissionStatus");
+      if (permissionStatus.isPermanentlyDenied) {
+        // The user opted to never again see the permission request dialog for this
+        // app. The only way to change the permission's status now is to let the
+        // user manually enable it in the system settings.
+        bool hadOpenAppSettings = await openAppSettings();
+        debugPrint(
+            "xxx [manager external] storageAccess isPermanentlyDenied. openAppSettings $hadOpenAppSettings");
+        return;
+      }
+    }
+
+    debugPrint("xxx permission status $permissionStatus");
   }
 }

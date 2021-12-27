@@ -1,6 +1,6 @@
 name: hello_plugin_package
 description: A new flutter plugin project. Provide commonly used Android platform functions.
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/yinghuihong/hello_plugin_package
 
 environment:

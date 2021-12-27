@@ -1,3 +1,7 @@
+## 0.0.5
+
+* Get package info by apk file path.
+
 ## 0.0.4
 
 * Provide api to get platform version.
