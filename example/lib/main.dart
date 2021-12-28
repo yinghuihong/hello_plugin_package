@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hello_plugin_package/hello_plugin_package.dart';
+import 'package:hello_plugin_package_example/text_view.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 void main() {
@@ -119,6 +121,12 @@ class _MyAppState extends State<MyApp> {
               },
               icon: const Icon(Icons.security),
             ),
+            IconButton(
+              onPressed: () {
+                _controller!.setText("${Random().nextInt(100)}");
+              },
+              icon: const Icon(Icons.cancel),
+            ),
           ],
         ),
         body: Center(
@@ -139,11 +147,24 @@ class _MyAppState extends State<MyApp> {
               Center(
                 child: _packageInfoByApkFile?.getAppIcon(),
               ),
+              SizedBox(
+                height: 100,
+                child: TextView(
+                  onTextViewCreated: _onTextViewCreated,
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  TextViewController? _controller;
+
+  void _onTextViewCreated(TextViewController controller) {
+    _controller = controller;
+    controller.setText('Hello from Android!');
   }
 
   /// Check or request storage permission
