@@ -79,9 +79,9 @@ import 'package:hello_plugin_package/hello_plugin_package.dart';
 
 /// ... other codes
 
-Future<List> getInstalledPackages() async {
+Future<List> getInstalledPackageNames() async {
   // All apps including system apps
-  List packages = await HelloPluginPackage.getInstalledPackages();
+  List packages = await HelloPluginPackage.getInstalledPackageNames();
 
   // Apps installed by user
   List userInstalledPackages = await HelloPluginPackage.getUserInstalledPackages();

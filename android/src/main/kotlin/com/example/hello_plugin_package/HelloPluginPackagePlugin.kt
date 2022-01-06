@@ -9,9 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.os.Build
-import android.os.Environment
-import android.os.StatFs
+import android.os.*
 import android.util.Base64
 import io.flutter.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -25,6 +23,7 @@ const val TAG = "Flutter Package Manager"
 
 /** HelloPluginPackagePlugin  */
 class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
+
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -43,8 +42,8 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
-            "getPlatformReleaseVersion" -> result.success(android.os.Build.VERSION.RELEASE)
-            "getPlatformSdkVersion" -> result.success(android.os.Build.VERSION.SDK_INT)
+            "getPlatformReleaseVersion" -> result.success(Build.VERSION.RELEASE)
+            "getPlatformSdkVersion" -> result.success(Build.VERSION.SDK_INT)
 
             "getStorageFreeSpace" -> result.success(getStorageFreeSpace())
             "getStorageUsedSpace" -> result.success(getStorageUsedSpace())
@@ -63,8 +62,26 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
                 val args = call.arguments as JSONArray
                 result.success(getPackageInfoByApkFile(args[0] as String))
             }
-            "getInstalledPackages" -> result.success(getInstalledPackages())
-            "getUserInstalledPackages" -> result.success(getInstalledPackages(true))
+            "getInstalledPackageInfos" -> result.success(getInstalledPackageInfos())
+            "getUserInstalledPackageInfos" -> result.success(getInstalledPackageInfos(true))
+            "notifyGetUserInstalledPackageInfos" -> {
+                val handler = Handler { msg ->
+                    if (msg.what == 1) {
+                        channel.invokeMethod("receiveGetUserInstalledPackageInfos", msg.obj)
+                    }
+                    true
+                }
+                Thread(Runnable {
+                    val list = getInstalledPackageInfos(true)
+                    val message = Message.obtain(handler)
+                    message.what = 1;
+                    message.obj = list;
+                    handler.sendMessage(message)
+                }).start();
+                result.success(true)
+            }
+            "getInstalledPackageNames" -> result.success(getInstalledPackageNames())
+            "getUserInstalledPackageNames" -> result.success(getInstalledPackageNames(true))
 
             else -> result.notImplemented()
         }
@@ -114,9 +131,31 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
     }
 
     /**
-     * get all installed packages's package name
+     * get all installed package's package info
      */
-    private fun getInstalledPackages(userInstalled: Boolean = false): ArrayList<String> {
+    private fun getInstalledPackageInfos(userInstalled: Boolean = false): ArrayList<HashMap<String, Any?>> {
+        val ret = ArrayList<HashMap<String, Any?>>()
+        context
+                .packageManager
+                .getInstalledPackages(0)
+                .forEach {
+                    var pName: String? = it.packageName
+                    if (userInstalled) {
+                        val isSystemApp =
+                                (it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) !== 0
+                        if (isSystemApp) pName = null
+                    }
+                    if (pName != null) {
+                        getPackageInfoByPackageName(pName)?.let { it1 -> ret.add(it1) }
+                    }
+                }
+        return ret
+    }
+
+    /**
+     * get all installed package's package name
+     */
+    private fun getInstalledPackageNames(userInstalled: Boolean = false): ArrayList<String> {
         val ret = ArrayList<String>()
         context
                 .packageManager
@@ -143,12 +182,12 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
             val info: HashMap<String, Any?> = HashMap()
             val appInfo: ApplicationInfo = context.packageManager
                     .getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-            val appName: String = context.packageManager.getApplicationLabel(appInfo).toString()
-            val appIcon: Drawable = context.packageManager.getApplicationIcon(appInfo.packageName)
-            val byteImage = drawableToBase64String(appIcon)
 
             info["packageName"] = appInfo.packageName
+            val appName: String = context.packageManager.getApplicationLabel(appInfo).toString()
             info["appName"] = appName
+            val appIcon: Drawable = context.packageManager.getApplicationIcon(appInfo.packageName)
+            val byteImage = drawableToBase64String(appIcon)
             info["appIcon"] = byteImage
             val pi = context.packageManager.getPackageInfo(packageName, 0);
             info["versionName"] = pi.versionName
@@ -157,6 +196,8 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
             } else {
                 pi.versionCode
             }
+            info["firstInstallTime"] = pi.firstInstallTime;
+            info["lastUpdateTime"] = pi.lastUpdateTime;
 //      Log.i(TAG, "xxx get the Package $packageName Info $info")
             return info
         } catch (e: Exception) {
@@ -178,11 +219,10 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler 
             pi!!.applicationInfo.sourceDir = apkFilePath
             pi.applicationInfo.publicSourceDir = apkFilePath;
 
-            val appIcon = pi.applicationInfo.loadIcon(pm)
-            val byteImage = drawableToBase64String(appIcon)
-
             info["packageName"] = pi.packageName
             info["appName"] = pi.applicationInfo.loadLabel(pm) as String
+            val appIcon = pi.applicationInfo.loadIcon(pm)
+            val byteImage = drawableToBase64String(appIcon)
             info["appIcon"] = byteImage
             info["versionName"] = pi.versionName
             info["versionCode"] = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

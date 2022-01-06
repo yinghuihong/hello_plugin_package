@@ -8,6 +8,9 @@ import 'package:hello_plugin_package/hello_plugin_package.dart';
 import 'package:hello_plugin_package_example/text_view.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'app_manager_screen.dart';
+import 'load_image_screen.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -89,11 +92,12 @@ class _MyAppState extends State<MyApp> {
 
   /// Should declaration android.permission.QUERY_ALL_PACKAGES permission for Android 11
   void _getPackageInfoByPackageName() async {
-    List packages = (await HelloPluginPackage.getUserInstalledPackages());
+    List packageNames =
+        (await HelloPluginPackage.getUserInstalledPackageNames());
     PackageInfo? packageInfo =
-        (await HelloPluginPackage.getPackageInfoByPackageName(packages[0]));
+        (await HelloPluginPackage.getPackageInfoByPackageName(packageNames[0]));
     print(packageInfo);
-    _userInstallPackagesNum = packages.length;
+    _userInstallPackagesNum = packageNames.length;
     _packageInfoByPackageName = packageInfo;
     setState(() {});
   }
@@ -111,52 +115,72 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Plugin example app'),
-          actions: [
-            IconButton(
-              onPressed: () {
-                _checkPermission(true);
-              },
-              icon: const Icon(Icons.security),
-            ),
-            IconButton(
-              onPressed: () {
-                _controller!.setText("${Random().nextInt(100)}");
-              },
-              icon: const Icon(Icons.cancel),
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            children: [
-              Text(
-                  'Running on: ${Platform.operatingSystem} $_platformReleaseVersion sdk $_platformSdkVersion \n'),
-              Text('Memory total: $_memoryTotalSpace\n'),
-              Text('Memory free: $_memoryFreeSpace\n'),
-              Text('Memory used: $_memoryUsedSpace\n'),
-              Text('Storage total: $_storageTotalSpace\n'),
-              Text('Storage free: $_storageFreeSpace\n'),
-              Text('Storage used: $_storageUsedSpace\n'),
-              Text('User installed apps num: $_userInstallPackagesNum\n'),
-              Center(
-                child: _packageInfoByPackageName?.getAppIcon(),
+      home: Builder(builder: (context) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Plugin example app'),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  _checkPermission(true);
+                },
+                icon: const Icon(Icons.security),
               ),
-              Center(
-                child: _packageInfoByApkFile?.getAppIcon(),
-              ),
-              SizedBox(
-                height: 100,
-                child: TextView(
-                  onTextViewCreated: _onTextViewCreated,
-                ),
+              IconButton(
+                onPressed: () {
+                  _controller!.setText("${Random().nextInt(100)}");
+                },
+                icon: const Icon(Icons.cancel),
               ),
             ],
           ),
-        ),
-      ),
+          body: Center(
+            child: Column(
+              children: [
+                Text(
+                    'Running on: ${Platform.operatingSystem} $_platformReleaseVersion sdk $_platformSdkVersion \n'),
+                Text('Memory total: $_memoryTotalSpace\n'),
+                Text('Memory free: $_memoryFreeSpace\n'),
+                Text('Memory used: $_memoryUsedSpace\n'),
+                Text('Storage total: $_storageTotalSpace\n'),
+                Text('Storage free: $_storageFreeSpace\n'),
+                Text('Storage used: $_storageUsedSpace\n'),
+                Text('User installed apps num: $_userInstallPackagesNum\n'),
+                Center(
+                  child: _packageInfoByPackageName?.getAppIcon(),
+                ),
+                Center(
+                  child: _packageInfoByApkFile?.getAppIcon(),
+                ),
+                SizedBox(
+                  height: 100,
+                  child: TextView(
+                    onTextViewCreated: _onTextViewCreated,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) {
+                      return const AppManagerScreen();
+                    }));
+                  },
+                  child: const Text("App Manager"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (context) {
+                      return const LoadImageScreen();
+                    }));
+                  },
+                  child: const Text("Load Image"),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 

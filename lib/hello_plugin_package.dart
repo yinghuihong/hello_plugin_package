@@ -6,55 +6,55 @@ import 'package:hello_plugin_package/src/package_info.dart';
 export 'src/package_info.dart';
 
 class HelloPluginPackage {
-  static const MethodChannel _channel =
+  static const MethodChannel channel =
       MethodChannel('hello_plugin_package', JSONMethodCodec());
 
   /// Platform release version. e.g. 11
   static Future<String?> get platformReleaseVersion async {
     final String? version =
-        await _channel.invokeMethod('getPlatformReleaseVersion');
+        await channel.invokeMethod('getPlatformReleaseVersion');
     return version;
   }
 
   /// Platform sdk version. e.g. 30
   static Future<int> get platformSdkVersion async {
-    final int version = await _channel.invokeMethod('getPlatformSdkVersion');
+    final int version = await channel.invokeMethod('getPlatformSdkVersion');
     return version;
   }
 
   /// Storage total space in bytes
   static Future<int> get getStorageTotalSpace async {
-    final int totalSpace = await _channel.invokeMethod('getStorageTotalSpace');
+    final int totalSpace = await channel.invokeMethod('getStorageTotalSpace');
     return totalSpace;
   }
 
   /// Storage free space in bytes
   static Future<int> get getStorageFreeSpace async {
-    final int freeSpace = await _channel.invokeMethod('getStorageFreeSpace');
+    final int freeSpace = await channel.invokeMethod('getStorageFreeSpace');
     return freeSpace;
   }
 
   /// Storage used space in bytes
   static Future<int> get getStorageUsedSpace async {
-    final int usedSpace = await _channel.invokeMethod('getStorageUsedSpace');
+    final int usedSpace = await channel.invokeMethod('getStorageUsedSpace');
     return usedSpace;
   }
 
   /// Memory total space in bytes
   static Future<int> get getMemoryTotalSpace async {
-    final int totalSpace = await _channel.invokeMethod('getMemoryTotalSpace');
+    final int totalSpace = await channel.invokeMethod('getMemoryTotalSpace');
     return totalSpace;
   }
 
   /// Memory free space in bytes
   static Future<int> get getMemoryFreeSpace async {
-    final int freeSpace = await _channel.invokeMethod('getMemoryFreeSpace');
+    final int freeSpace = await channel.invokeMethod('getMemoryFreeSpace');
     return freeSpace;
   }
 
   /// Memory used space in bytes
   static Future<int> get getMemoryUsedSpace async {
-    final int usedSpace = await _channel.invokeMethod('getMemoryUsedSpace');
+    final int usedSpace = await channel.invokeMethod('getMemoryUsedSpace');
     return usedSpace;
   }
 
@@ -62,16 +62,16 @@ class HelloPluginPackage {
   /// Return: `PackageInfo` class
   static Future<PackageInfo?> getPackageInfoByPackageName(
       String packageName) async {
-    Map result = await _channel
+    Map? result = await channel
         .invokeMethod('getPackageInfoByPackageName', <dynamic>[packageName]);
-    return PackageInfo.fromMap(result);
+    return result != null ? PackageInfo.fromMap(result) : null;
   }
 
   /// Get package information of the `name` package
   /// Return: `PackageInfo` class
   static Future<PackageInfo?> getPackageInfoByApkFile(
       String apkFilePath) async {
-    Map? result = await _channel
+    Map? result = await channel
         .invokeMethod('getPackageInfoByApkFile', <dynamic>[apkFilePath]);
     return result != null ? PackageInfo.fromMap(result) : null;
   }
@@ -79,14 +79,37 @@ class HelloPluginPackage {
   /// Get the `List<String>` of the installed applications.
   /// This includes the system apps.
   /// You can use this name as a parameter of `getPackageInfo()` call.
-  static Future<List> getInstalledPackages() async {
-    return await _channel.invokeMethod('getInstalledPackages');
+  static Future<List> getInstalledPackageNames() async {
+    return await channel.invokeMethod('getInstalledPackageNames');
   }
 
   /// Get the `List<String>` of the ***user installed*** applications.
   /// This does not include the system apps.
   /// You can use this name as a parameter of `getPackageInfo()` call.
-  static Future<List> getUserInstalledPackages() async {
-    return await _channel.invokeMethod('getUserInstalledPackages');
+  static Future<List> getUserInstalledPackageNames() async {
+    return await channel.invokeMethod('getUserInstalledPackageNames');
+  }
+
+  /// Get the `List<PackageInfo>` of the installed applications.
+  /// This includes the system apps.
+  /// You can use this name as a parameter of `getPackageInfo()` call.
+  static Future<List<PackageInfo>> getInstalledPackageInfos() async {
+    List list = await channel.invokeMethod('getInstalledPackageInfos');
+    return list.map((e) => PackageInfo.fromMap(e)).toList();
+  }
+
+  /// Get the `List<PackageInfo>` of the installed applications.
+  /// This does not include the system apps.
+  /// You can use this name as a parameter of `getPackageInfo()` call.
+  static Future<List<PackageInfo>> getUserInstalledPackageInfos() async {
+    List list = await channel.invokeMethod('getUserInstalledPackageInfos');
+    return list.map((e) => PackageInfo.fromMap(e)).toList();
+  }
+
+  /// Get the `List<PackageInfo>` of the installed applications.
+  /// This does not include the system apps.
+  /// You can use this name as a parameter of `getPackageInfo()` call.
+  static Future<bool> notifyGetUserInstalledPackageInfos() async {
+    return await channel.invokeMethod('notifyGetUserInstalledPackageInfos');
   }
 }
