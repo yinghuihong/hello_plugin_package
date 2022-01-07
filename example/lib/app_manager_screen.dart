@@ -2,6 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hello_plugin_package/hello_plugin_package.dart';
 
+// import 'package:intent/action.dart' as android_action;
+// import 'package:intent/intent.dart' as android_intent;
+
+/// https://stackoverflow.com/questions/51998995/invalid-arguments-illegal-argument-in-isolate-message-object-is-a-closure
+/// https://docs.flutter.dev/cookbook/networking/background-parsing
+/// Callback must be a top-level function
+List<PackageInfo> parsePackageInfoList(List list) {
+  return list.map((e) => PackageInfo.fromMap(e)).toList();
+}
+
 //
 class AppManagerScreen extends StatefulWidget {
   const AppManagerScreen({Key? key}) : super(key: key);
@@ -16,30 +26,33 @@ class _AppManagerScreenState extends State<AppManagerScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      // _loadPackageInfos();
-      HelloPluginPackage.notifyGetUserInstalledPackageInfos();
-    });
 
+    /// Invoker
+    HelloPluginPackage.invokeGetUserInstalledPackageInfos();
+
+    /// Receiver
     HelloPluginPackage.channel.setMethodCallHandler((call) async {
       switch (call.method) {
         case 'receiveGetUserInstalledPackageInfos':
           List list = call.arguments;
           debugPrint(
               "xxx receiveGetUserInstalledPackageInfos ... ${list.length}");
-          _packageInfos = list.map((e) => PackageInfo.fromMap(e)).toList();
-          // _packageInfos = await compute(parsePackageInfoList, list);
-          debugPrint("xxx ?? ${_packageInfos.length}");
+          compute(parsePackageInfoList, list).then((value) {
+            _packageInfos = value;
+            setState(() {});
+          });
+          break;
+        case 'uninstallAppSuccess':
+          String uninstallPackageName = call.arguments;
+          _packageInfos = _packageInfos
+              .where((element) => element.packageName != uninstallPackageName)
+              .toList();
           setState(() {});
           break;
         default:
           return await Future<void>.error('Method not defined');
       }
     });
-  }
-
-  List<PackageInfo> parsePackageInfoList(List list) {
-    return list.map((e) => PackageInfo.fromMap(e)).toList();
   }
 
   @override
@@ -61,20 +74,11 @@ class _AppManagerScreenState extends State<AppManagerScreen> {
                   title: Text(_packageInfo.appName),
                   subtitle: Text("${_packageInfo.firstInstallTime}"),
                   onTap: () {
-                    _packageInfo.packageName;
+                    HelloPluginPackage.uninstallApp(_packageInfo.packageName);
                   },
                 );
               },
             ),
     );
   }
-
-// void _loadPackageInfos() async {
-//   debugPrint("xxx start ${DateTime.now()}");
-//   await HelloPluginPackage.getUserInstalledPackageInfos().then((value) {
-//     _packageInfos = value;
-//   });
-//   debugPrint("xxx end ${DateTime.now()}");
-//   setState(() {});
-// }
 }

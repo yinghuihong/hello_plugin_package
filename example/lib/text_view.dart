@@ -9,8 +9,8 @@ typedef void TextViewCreatedCallback(TextViewController controller);
 /// https://medium.com/flutter-community/flutter-platformview-how-to-create-flutter-widgets-from-native-views-366e378115b6
 class TextView extends StatefulWidget {
   const TextView({
-     Key? key,
-     this.onTextViewCreated,
+    Key? key,
+    this.onTextViewCreated,
   }) : super(key: key);
 
   final TextViewCreatedCallback? onTextViewCreated;

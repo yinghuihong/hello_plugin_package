@@ -1,3 +1,7 @@
+## 0.0.6
+
+* Get package info list.
+
 ## 0.0.5
 
 * Get package info by apk file path.

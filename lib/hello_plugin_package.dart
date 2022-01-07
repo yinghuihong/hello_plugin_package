@@ -109,7 +109,12 @@ class HelloPluginPackage {
   /// Get the `List<PackageInfo>` of the installed applications.
   /// This does not include the system apps.
   /// You can use this name as a parameter of `getPackageInfo()` call.
-  static Future<bool> notifyGetUserInstalledPackageInfos() async {
-    return await channel.invokeMethod('notifyGetUserInstalledPackageInfos');
+  static Future<bool> invokeGetUserInstalledPackageInfos() async {
+    return await channel.invokeMethod('invokeGetUserInstalledPackageInfos');
+  }
+
+  /// Uninstall apk by package name.
+  static Future<void> uninstallApp(String packageName) async {
+    channel.invokeMethod('uninstallApp', <dynamic>[packageName]);
   }
 }
