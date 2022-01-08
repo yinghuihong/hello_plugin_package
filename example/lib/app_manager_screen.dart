@@ -72,7 +72,8 @@ class _AppManagerScreenState extends State<AppManagerScreen> {
                 return ListTile(
                   leading: _packageInfo.getAppIcon(),
                   title: Text(_packageInfo.appName),
-                  subtitle: Text("${_packageInfo.firstInstallTime}"),
+                  subtitle: Text(
+                      "${DateTime.fromMillisecondsSinceEpoch(_packageInfo.firstInstallTime)}"),
                   onTap: () {
                     HelloPluginPackage.uninstallApp(_packageInfo.packageName);
                   },
