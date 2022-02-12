@@ -112,21 +112,24 @@ class HelloPluginPackagePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
 
     private fun getStorageTotalSpace(): Long {
         // path：/data
-        val path = Environment.getDataDirectory()
-        val stat = StatFs(path.path)
-        return stat.totalBytes
+//        val path = Environment.getExternalStorageDirectory()
+//        val stat = StatFs(path.path)
+//        return stat.totalBytes
+        return SDCardUtil.total(context);
     }
 
     private fun getStorageFreeSpace(): Long {
-        val path = Environment.getDataDirectory()
-        val stat = StatFs(path.path)
-        return stat.availableBytes
+//        val path = Environment.getExternalStorageDirectory()
+//        val stat = StatFs(path.path)
+//        return stat.availableBytes
+        return SDCardUtil.free(context);
     }
 
     private fun getStorageUsedSpace(): Long {
-        val path = Environment.getDataDirectory()
-        val stat = StatFs(path.path)
-        return stat.totalBytes - stat.availableBytes
+//        val path = Environment.getExternalStorageDirectory()
+//        val stat = StatFs(path.path)
+//        return stat.totalBytes - stat.availableBytes
+        return SDCardUtil.total(context) - SDCardUtil.free(context);
     }
 
     private fun getMemoryTotalSpace(): Long {

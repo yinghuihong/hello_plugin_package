@@ -1,3 +1,7 @@
+## 0.0.8
+
+* Improve the accuracy of storage info
+
 ## 0.0.7
 
 * Remove TODO("Not yet implemented")

@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hello_plugin_package/hello_plugin_package.dart';
+import 'package:hello_plugin_package_example/common.dart';
 import 'package:hello_plugin_package_example/text_view.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -139,12 +140,15 @@ class _MyAppState extends State<MyApp> {
               children: [
                 Text(
                     'Running on: ${Platform.operatingSystem} $_platformReleaseVersion sdk $_platformSdkVersion \n'),
-                Text('Memory total: $_memoryTotalSpace\n'),
-                Text('Memory free: $_memoryFreeSpace\n'),
-                Text('Memory used: $_memoryUsedSpace\n'),
-                Text('Storage total: $_storageTotalSpace\n'),
-                Text('Storage free: $_storageFreeSpace\n'),
-                Text('Storage used: $_storageUsedSpace\n'),
+                Text('Memory total: ${formatBytes(_memoryTotalSpace)}\n'),
+                Text('Memory free: ${formatBytes(_memoryFreeSpace)}\n'),
+                Text('Memory used: ${formatBytes(_memoryUsedSpace)}\n'),
+                Text(
+                    'Storage total: ${formatBytes(_storageTotalSpace, 1000)}\n'),
+                Text('Storage free: ${formatBytes(_storageFreeSpace, 1000)}\n'),
+                Text('Storage used: ${formatBytes(_storageUsedSpace, 1000)}\n'),
+                Text(
+                    'Storage used Percent: ${(_storageUsedSpace / _storageTotalSpace).toStringAsPrecision(2)}%\n'),
                 Text('User installed apps num: $_userInstallPackagesNum\n'),
                 Center(
                   child: _packageInfoByPackageName?.getAppIcon(),
